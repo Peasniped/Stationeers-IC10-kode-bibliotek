@@ -1,0 +1,45 @@
+### Furnace Controller Script
+alias ignition d0
+alias dialPres d1
+alias dialTemp d2
+alias furnace d3
+alias pumpCool d4
+alias pumpPres d5
+
+alias currentTemp r10
+alias currentPres r11
+
+start:
+# Programmet krer kun hvis det er aktiveret
+l r1 ignition Setting
+bne r1 1 flush
+
+# Activate hvis temperaturen er 0, ellers hop til checkTemp:
+bne currentTemp 0 checkTemp
+s furnace Activate 1
+
+checkTemp: # Tænd kølepumpe hvis currentTemp er hjere end dialTemp*100, ellers hop til checkTempPumpOff:
+l currentTemp furnace Temperature
+l r1 dialTemp Setting
+mul r1 r1 100
+blt currentTemp r1 checkTempPumpOff
+s pumpCool On 1
+checkTempPumpOff: # Sluk kølepumpe hvis currentTemp er lavere end dialTemp*100 ellers hop videre til presCheck
+bgt currentTemp r1 presCheck
+s pumpCool On 0
+
+presCheck: # Sluk trykpumpe og tag måling. Hvis trykket er højere end dialPres tændes pumpen igen. Ellers tilbage til start
+s pumpPres On 0
+l currentPres furnace Pressure
+l r1 dialPres Setting
+blt currentPres r1 start
+s pumpPres On 1
+j start
+
+flush: # Tøm rørsystemet for luft, hvis systemet deaktiveres. 
+l r1 ignition Setting
+beq r1 1 start
+l currentPres furnace Pressure
+s pumpPres On 1
+bne currentPres 0 flush
+j start

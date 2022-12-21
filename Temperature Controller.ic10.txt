@@ -1,0 +1,25 @@
+### Air Conditioner Controller Script
+alias thermometer d0
+alias pumpCool d1
+alias pumpHeat d2
+
+alias currentTemp r10
+
+start:
+l currentTemp thermometer Temperature
+
+checkCool: # Sluk pumpCool hvis temperaturen er under 30, ellers tænd pumpCool
+bgt currentTemp 30 cool
+s pumpCool On 0
+j checkHeat
+cool:
+s pumpCool On 1
+
+checkHeat: # Sluk pumpHeat hvis temperaturen er over 20, ellers tænd pumpHeat
+blt currentTemp 20 heat
+s pumpHeat On 0
+j start
+heat:
+s pumpHeat On 1
+
+j start # Return to start
